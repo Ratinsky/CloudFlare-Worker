@@ -2,38 +2,65 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Notion Fetch Test</title>
+  <title>Notion Multi Chart Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    canvas { background: #fff; padding: 10px; border-radius: 12px; }
+  </style>
 </head>
 <body>
-  <h2>Test Notion Worker</h2>
 
-  <input id="db" placeholder="Database ID" style="width:300px;" />
-  <button onclick="loadData()">Load</button>
+<h2 id="title">Dashboard</h2>
 
-  <pre id="out"></pre>
+<div class="grid">
+  <canvas id="chart1"></canvas>
+  <canvas id="chart2"></canvas>
+</div>
 
-  <script>
-    async function loadData() {
-      const db = document.getElementById("db").value;
+<script>
+const params = new URLSearchParams(window.location.search);
 
-      if (!db) {
-        document.getElementById("out").innerText = "Enter database ID";
-        return;
+const db = params.get("db");
+
+// ⚡ настройки графиков
+const charts = [
+  { id: "chart1", y: "Revenue", label: "Revenue", type: "bar" },
+  { id: "chart2", y: "Revenue", label: "Revenue Line", type: "line" }
+];
+
+const url = `https://lively-king-24e3.aratinskii.workers.dev/?db=${db}`;
+
+async function load() {
+  const res = await fetch(url);
+  const data = await res.json();
+  const rows = data.results || [];
+
+  const labels = rows.map(r =>
+    r.properties?.Name?.title?.[0]?.plain_text || "N/A"
+  );
+
+  charts.forEach(cfg => {
+    const values = rows.map(r =>
+      r.properties?.[cfg.y]?.number || 0
+    );
+
+    new Chart(document.getElementById(cfg.id), {
+      type: cfg.type,
+      data: {
+        labels,
+        datasets: [{
+          label: cfg.label,
+          data: values
+        }]
       }
+    });
+  });
+}
 
-      const url = `https://lively-king-24e3.aratinskii.workers.dev/?db=${db}`;
+if (db) load();
+</script>
 
-      try {
-        const res = await fetch(url);
-
-        const text = await res.text();
-
-        document.getElementById("out").innerText = text;
-      } catch (e) {
-        document.getElementById("out").innerText =
-          "Fetch error: " + e.message;
-      }
-    }
-  </script>
 </body>
 </html>
