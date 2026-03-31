@@ -294,7 +294,6 @@ export default {
     const res = await fetch(target, {
       method: request.method,
       headers: {
-        "Authorization": request.headers.get("Authorization"),
         "Notion-Version": "2022-06-28",
         "Content-Type": "application/json",
       },
