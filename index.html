@@ -1,133 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Notion Charts</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-/* (СТИЛИ ТВОИ ОСТАВЛЯЮ БЕЗ ИЗМЕНЕНИЙ — ОНИ УЖЕ ОК) */
-body { margin:0; background:#0f0f0f; color:#fff; font-family:sans-serif; }
-#app { padding:16px; height:100vh; display:flex; flex-direction:column; }
-#chart-wrap { flex:1; }
-canvas { width:100%!important; height:100%!important; }
-#error { color:red; padding:20px; }
-</style>
+  <meta charset="UTF-8" />
+  <title>Notion Fetch Test</title>
 </head>
 <body>
+  <h2>Test Notion Worker</h2>
 
-<div id="error" style="display:none;"></div>
+  <input id="db" placeholder="Database ID" style="width:300px;" />
+  <button onclick="loadData()">Load</button>
 
-<div id="app">
-  <div id="chart-wrap">
-    <canvas id="chart"></canvas>
-  </div>
-</div>
+  <pre id="out"></pre>
 
-<script>
-// =========================
-// CONFIG
-// =========================
-const PROXY = "https://lively-king-24e3.aratinskii.workers.dev"; // <-- сюда worker URL
+  <script>
+    async function loadData() {
+      const db = document.getElementById("db").value;
 
-// =========================
-// PARAMS
-// =========================
-const params = new URLSearchParams(location.search);
-const P = k => params.get(k);
+      if (!db) {
+        document.getElementById("out").innerText = "Enter database ID";
+        return;
+      }
 
-const db    = P("db");
-const type  = P("type") || "bar";
-const xProp = P("x");
-const yProp = P("y");
-const title = P("title");
+      const url = `https://lively-king-24e3.aratinskii.workers.dev/?db=${db}`;
 
-// =========================
-// ERROR
-// =========================
-function error(msg){
-  document.getElementById("error").style.display="block";
-  document.getElementById("error").innerText = msg;
-}
+      try {
+        const res = await fetch(url);
 
-// =========================
-// FETCH NOTION VIA WORKER
-// =========================
-async function loadData(){
-  const res = await fetch(`${PROXY}?db=${db}`, {
-    method: "POST"
-  });
+        const text = await res.text();
 
-  if(!res.ok){
-    throw new Error(await res.text());
-  }
-
-  return res.json();
-}
-
-// =========================
-// EXTRACT
-// =========================
-function extractValue(prop){
-  if(!prop) return null;
-  switch(prop.type){
-    case "title": return prop.title.map(t=>t.plain_text).join("");
-    case "rich_text": return prop.rich_text.map(t=>t.plain_text).join("");
-    case "number": return prop.number;
-    case "select": return prop.select?.name;
-    case "multi_select": return prop.multi_select.map(s=>s.name).join(",");
-    case "date": return prop.date?.start;
-    default: return null;
-  }
-}
-
-// =========================
-// CHART
-// =========================
-function draw(rows){
-  const labels = rows.map(r => extractValue(r.properties[xProp]) || "");
-  const values = rows.map(r => Number(extractValue(r.properties[yProp]) || 0));
-
-  new Chart(document.getElementById("chart"), {
-    type,
-    data: {
-      labels,
-      datasets: [{
-        label: yProp,
-        data: values,
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive:true,
-      maintainAspectRatio:false
+        document.getElementById("out").innerText = text;
+      } catch (e) {
+        document.getElementById("out").innerText =
+          "Fetch error: " + e.message;
+      }
     }
-  });
-}
-
-// =========================
-// MAIN
-// =========================
-async function main(){
-  try {
-    if(!db) return error("Missing ?db parameter");
-    if(!xProp) return error("Missing ?x parameter");
-    if(!yProp) return error("Missing ?y parameter");
-
-    const data = await loadData();
-    const rows = data.results || [];
-
-    if(!rows.length) return error("No data");
-
-    draw(rows);
-
-  } catch(e){
-    error(e.message);
-  }
-}
-
-main();
-</script>
-
+  </script>
 </body>
 </html>
