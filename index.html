@@ -1,183 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Notion Charts Pro</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg:#0f0f0f; --surface:#1a1a1a; --border:#2a2a2a;
-  --text:#e8e8e8; --muted:#666;
-  --accent:#7c6af7;
-}
-
-html,body{
-  width:100%;height:100%;
-  background:var(--bg);
-  color:var(--text);
-  font-family:'DM Sans',sans-serif;
-  overflow:auto;
-}
-
-#app{padding:16px;display:flex;flex-direction:column;gap:16px}
-
-#header{display:flex;justify-content:space-between;align-items:center}
-
-#grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-}
-
-canvas{
-  background:#111;
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:10px;
-  height:320px !important;
-}
-
-#filters{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-input,select{
-  background:#111;
-  border:1px solid var(--border);
-  color:var(--text);
-  padding:6px 10px;
-  border-radius:8px;
-}
-button{
-  background:var(--accent);
-  border:none;
-  padding:6px 12px;
-  color:white;
-  border-radius:8px;
-  cursor:pointer;
-}
-</style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
 
-<div id="app">
+<h3>Notion Analytics</h3>
 
-  <div id="header">
-    <div id="title">Notion Dashboard</div>
-    <button onclick="load()">Refresh</button>
-  </div>
-
-  <!-- FILTERS -->
-  <div id="filters">
-    <input id="filterText" placeholder="Filter Name contains..." />
-    <button onclick="load()">Apply</button>
-  </div>
-
-  <!-- CHARTS -->
-  <div id="grid">
-    <canvas id="c1"></canvas>
-    <canvas id="c2"></canvas>
-  </div>
-
-</div>
+<canvas id="barChart"></canvas>
+<canvas id="lineChart"></canvas>
 
 <script>
-const PROXY = "https://lively-king-24e3.aratinskii.workers.dev";
+const WORKER_URL = "https://lively-king-24e3.aratinskii.workers.dev/";
 
-const params = new URLSearchParams(location.search);
+async function loadData() {
+  const res = await fetch(WORKER_URL);
+  const data = await res.json();
 
-const db = params.get("db");
-const xKey = params.get("x") || "Name";
-const yKey = params.get("y") || "Revenue";
+  console.log("DATA:", data);
 
-let CACHE = null;
+  const labels = data.map(i => i.name);
+  const values = data.map(i => i.value);
 
-function extract(prop){
-  if(!prop) return null;
-
-  switch(prop.type){
-    case "title": return prop.title?.[0]?.plain_text || "";
-    case "rich_text": return prop.rich_text?.[0]?.plain_text || "";
-    case "number": return prop.number || 0;
-    case "select": return prop.select?.name || "";
-    case "date": return prop.date?.start || "";
-    default: return "";
-  }
-}
-
-async function fetchData(){
-  if(CACHE) return CACHE;
-
-  const res = await fetch(`${PROXY}?url=${encodeURIComponent(
-    `https://api.notion.com/v1/databases/${db}/query`
-  )}`, {
-    method:"POST"
-  });
-
-  const json = await res.json();
-  CACHE = json.results || [];
-  return CACHE;
-}
-
-function filterRows(rows){
-  const f = document.getElementById("filterText").value.toLowerCase();
-  if(!f) return rows;
-
-  return rows.filter(r=>{
-    const name = extract(r.properties[xKey]).toLowerCase();
-    return name.includes(f);
-  });
-}
-
-function buildChart(id, rows, type){
-  const ctx = document.getElementById(id);
-
-  const labels = rows.map(r => extract(r.properties[xKey]));
-  const values = rows.map(r => Number(extract(r.properties[yKey]) || 0));
-
-  new Chart(ctx,{
-    type,
-    data:{
+  // ===== BAR CHART =====
+  new Chart(document.getElementById("barChart"), {
+    type: "bar",
+    data: {
       labels,
-      datasets:[{
-        label:yKey,
-        data:values,
-        borderWidth:2
+      datasets: [{
+        label: "Values",
+        data: values
       }]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false
+    }
+  });
+
+  // ===== LINE CHART =====
+  new Chart(document.getElementById("lineChart"), {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Trend",
+        data: values
+      }]
     }
   });
 }
 
-async function load(){
-
-  const rowsRaw = await fetchData();
-  const rows = filterRows(rowsRaw);
-
-  // reset canvas (important for redraw)
-  document.getElementById("grid").innerHTML = `
-    <canvas id="c1"></canvas>
-    <canvas id="c2"></canvas>
-  `;
-
-  buildChart("c1", rows, "bar");
-  buildChart("c2", rows, "line");
-}
-
-load();
+loadData();
 </script>
 
 </body>
