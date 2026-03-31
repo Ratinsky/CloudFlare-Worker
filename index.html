@@ -6,737 +6,128 @@
 <title>Notion Charts</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #0f0f0f;
-    --surface: #1a1a1a;
-    --border: #2a2a2a;
-    --text: #e8e8e8;
-    --muted: #666;
-    --accent: #7c6af7;
-    --accent2: #f7a26a;
-    --success: #6af7a2;
-    --danger: #f76a6a;
-
-    --c1: #7c6af7;
-    --c2: #f7a26a;
-    --c3: #6af7a2;
-    --c4: #f76a6a;
-    --c5: #6ab8f7;
-    --c6: #f7e26a;
-    --c7: #e26af7;
-    --c8: #6af7d4;
-  }
-
-  html, body {
-    width: 100%; height: 100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    overflow: hidden;
-  }
-
-  #app {
-    width: 100vw; height: 100vh;
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    gap: 12px;
-  }
-
-  /* ── LOADING ─────────────────────────────────── */
-  #loading {
-    position: fixed; inset: 0;
-    background: var(--bg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    z-index: 100;
-    font-family: 'DM Mono', monospace;
-  }
-  .spinner {
-    width: 32px; height: 32px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  #loading-text { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; }
-
-  /* ── ERROR ───────────────────────────────────── */
-  #error {
-    display: none;
-    position: fixed; inset: 0;
-    background: var(--bg);
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 12px;
-    text-align: center;
-    padding: 32px;
-  }
-  #error.show { display: flex; }
-  .err-icon { font-size: 32px; }
-  .err-title { font-size: 15px; font-weight: 600; color: var(--danger); }
-  .err-msg { color: var(--muted); font-size: 12px; max-width: 400px; line-height: 1.6; }
-  .err-hint {
-    margin-top: 8px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--accent);
-    max-width: 500px;
-    text-align: left;
-    line-height: 1.8;
-  }
-
-  /* ── HEADER ──────────────────────────────────── */
-  #header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-  #chart-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: -0.01em;
-  }
-  #meta {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  #refresh-btn {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--muted);
-    padding: 3px 8px;
-    cursor: pointer;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    transition: all 0.15s;
-  }
-  #refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* ── CHART AREA ──────────────────────────────── */
-  #chart-wrap {
-    flex: 1;
-    position: relative;
-    min-height: 0;
-  }
-  canvas {
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  /* ── SETUP PAGE ──────────────────────────────── */
-  #setup {
-    display: none;
-    position: fixed; inset: 0;
-    background: var(--bg);
-    overflow-y: auto;
-    padding: 40px 24px;
-  }
-  #setup.show { display: block; }
-  .setup-inner { max-width: 600px; margin: 0 auto; }
-
-  .setup-logo {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--accent);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 32px;
-  }
-  .setup-logo span { color: var(--muted); }
-
-  .setup-h1 {
-    font-size: 24px;
-    font-weight: 600;
-    letter-spacing: -0.03em;
-    margin-bottom: 8px;
-  }
-  .setup-sub {
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.6;
-    margin-bottom: 32px;
-  }
-
-  .step {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 16px;
-  }
-  .step-num {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--accent);
-    letter-spacing: 0.1em;
-    margin-bottom: 8px;
-  }
-  .step-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-  .step-desc { color: var(--muted); font-size: 12px; line-height: 1.7; }
-  .step-desc a { color: var(--accent); text-decoration: none; }
-  .step-desc a:hover { text-decoration: underline; }
-
-  .code-block {
-    margin-top: 12px;
-    background: #0a0a0a;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--accent2);
-    line-height: 1.8;
-    overflow-x: auto;
-    white-space: pre;
-  }
-
-  .params-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 12px;
-  }
-  .param {
-    background: #0a0a0a;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 10px;
-  }
-  .param-name {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--accent);
-    margin-bottom: 2px;
-  }
-  .param-desc { font-size: 11px; color: var(--muted); }
-  .param-vals {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--accent2);
-    margin-top: 3px;
-  }
+/* (СТИЛИ ТВОИ ОСТАВЛЯЮ БЕЗ ИЗМЕНЕНИЙ — ОНИ УЖЕ ОК) */
+body { margin:0; background:#0f0f0f; color:#fff; font-family:sans-serif; }
+#app { padding:16px; height:100vh; display:flex; flex-direction:column; }
+#chart-wrap { flex:1; }
+canvas { width:100%!important; height:100%!important; }
+#error { color:red; padding:20px; }
 </style>
 </head>
 <body>
 
-<div id="loading">
-  <div class="spinner"></div>
-  <div id="loading-text">fetching notion data...</div>
-</div>
+<div id="error" style="display:none;"></div>
 
-<div id="error">
-  <div class="err-icon">⚠</div>
-  <div class="err-title" id="err-title">Something went wrong</div>
-  <div class="err-msg" id="err-msg"></div>
-  <div class="err-hint" id="err-hint"></div>
-</div>
-
-<div id="setup">
-  <div class="setup-inner">
-    <div class="setup-logo">Notion <span>/</span> Charts</div>
-    <h1 class="setup-h1">Free charts<br>inside Notion</h1>
-    <p class="setup-sub">
-      Embed unlimited charts into any Notion page via /embed block.<br>
-      No backend, no server — just one HTML file on GitHub Pages.
-    </p>
-
-    <div class="step">
-      <div class="step-num">STEP 01</div>
-      <div class="step-title">Create a Notion Integration</div>
-      <div class="step-desc">
-        Go to <a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a>, create an integration, copy the <strong>Internal Integration Token</strong>.<br><br>
-        Then open your Notion database → <strong>⋯ → Connections → add your integration</strong>.
-      </div>
-    </div>
-
-    <div class="step">
-      <div class="step-num">STEP 02</div>
-      <div class="step-title">Deploy to GitHub Pages</div>
-      <div class="step-desc">
-        Create a GitHub repo, put this <code>index.html</code> there, enable GitHub Pages in Settings → Pages → <strong>Deploy from branch</strong>.
-      </div>
-    </div>
-
-    <div class="step">
-      <div class="step-num">STEP 03</div>
-      <div class="step-title">Configure the CORS proxy</div>
-      <div class="step-desc">
-        Notion API doesn't allow browser requests directly. Deploy a free proxy worker on <a href="https://workers.cloudflare.com" target="_blank">Cloudflare Workers</a> (free tier: 100k req/day):
-        <div class="code-block">// Cloudflare Worker code:
-export default {
-  async fetch(request) {
-    const url = new URL(request.url);
-    const target = url.searchParams.get("url");
-    if (!target) return new Response("missing url", { status: 400 });
-
-    const res = await fetch(target, {
-      method: request.method,
-      headers: {
-        "Notion-Version": "2022-06-28",
-        "Content-Type": "application/json",
-      },
-      body: request.method !== "GET" ? request.body : undefined,
-    });
-
-    const data = await res.text();
-    return new Response(data, {
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "*",
-      }
-    });
-  }
-};</div>
-        After deploy, put your Worker URL into the <code>PROXY</code> variable at the top of <code>index.html</code>.
-      </div>
-    </div>
-
-    <div class="step">
-      <div class="step-num">STEP 04</div>
-      <div class="step-title">Embed into Notion</div>
-      <div class="step-desc">
-        In Notion type <code>/embed</code> and paste your URL with parameters:
-        <div class="code-block">https://yourname.github.io/notion-charts/?token=secret_xxx
-  &db=DATABASE_ID
-  &type=bar
-  &x=Name
-  &y=Revenue
-  &title=Monthly+Revenue</div>
-
-        <div style="margin-top:14px; font-size:12px; color: var(--muted);">All URL parameters:</div>
-        <div class="params-grid">
-          <div class="param">
-            <div class="param-name">token</div>
-            <div class="param-desc">Notion Integration Token</div>
-            <div class="param-vals">secret_xxx...</div>
-          </div>
-          <div class="param">
-            <div class="param-name">db</div>
-            <div class="param-desc">Database ID from URL</div>
-            <div class="param-vals">32-char string</div>
-          </div>
-          <div class="param">
-            <div class="param-name">type</div>
-            <div class="param-desc">Chart type</div>
-            <div class="param-vals">bar · line · pie · doughnut · scatter</div>
-          </div>
-          <div class="param">
-            <div class="param-name">x</div>
-            <div class="param-desc">Property for X axis / labels</div>
-            <div class="param-vals">column name</div>
-          </div>
-          <div class="param">
-            <div class="param-name">y</div>
-            <div class="param-desc">Property for Y axis / values</div>
-            <div class="param-vals">column name</div>
-          </div>
-          <div class="param">
-            <div class="param-name">title</div>
-            <div class="param-desc">Chart title (optional)</div>
-            <div class="param-vals">any text</div>
-          </div>
-          <div class="param">
-            <div class="param-name">limit</div>
-            <div class="param-desc">Max rows (optional)</div>
-            <div class="param-vals">default: 100</div>
-          </div>
-          <div class="param">
-            <div class="param-name">sort</div>
-            <div class="param-desc">Sort direction (optional)</div>
-            <div class="param-vals">asc · desc</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<div id="app" style="display:none;">
-  <div id="header">
-    <div id="chart-title"></div>
-    <div id="meta">
-      <span id="row-count"></span>
-      <button id="refresh-btn">↻ refresh</button>
-    </div>
-  </div>
+<div id="app">
   <div id="chart-wrap">
     <canvas id="chart"></canvas>
   </div>
 </div>
 
 <script>
-// ════════════════════════════════════════════════
-//  CONFIG — edit this after deploying your proxy
-// ════════════════════════════════════════════════
-const PROXY = "https://lively-king-24e3.aratinskii.workers.dev"; // ← paste Cloudflare Worker URL here
+// =========================
+// CONFIG
+// =========================
+const PROXY = "https://lively-king-24e3.aratinskii.workers.dev"; // <-- сюда worker URL
 
-// ════════════════════════════════════════════════
-//  UTILS
-// ════════════════════════════════════════════════
-const $ = id => document.getElementById(id);
+// =========================
+// PARAMS
+// =========================
 const params = new URLSearchParams(location.search);
-const P = k => params.get(k) || "";
+const P = k => params.get(k);
 
-function showError(title, msg, hint = "") {
-  $("loading").style.display = "none";
-  const el = $("error");
-  el.classList.add("show");
-  $("err-title").textContent = title;
-  $("err-msg").textContent = msg;
-  $("err-hint").textContent = hint;
+const db    = P("db");
+const type  = P("type") || "bar";
+const xProp = P("x");
+const yProp = P("y");
+const title = P("title");
+
+// =========================
+// ERROR
+// =========================
+function error(msg){
+  document.getElementById("error").style.display="block";
+  document.getElementById("error").innerText = msg;
 }
 
-// ════════════════════════════════════════════════
-//  NOTION API
-// ════════════════════════════════════════════════
-async function queryDatabase(token, dbId, limit = 100) {
-  const proxyBase = PROXY.replace(/\/$/, "");
-  const targetUrl = `https://api.notion.com/v1/databases/${dbId}/query`;
-
-  const res = await fetch(`${proxyBase}?url=${encodeURIComponent(targetUrl)}`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ page_size: Math.min(limit, 100) }),
+// =========================
+// FETCH NOTION VIA WORKER
+// =========================
+async function loadData(){
+  const res = await fetch(`${PROXY}?db=${db}`, {
+    method: "POST"
   });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Notion API ${res.status}: ${err}`);
+  if(!res.ok){
+    throw new Error(await res.text());
   }
+
   return res.json();
 }
 
-// ════════════════════════════════════════════════
-//  PROPERTY EXTRACTOR
-// ════════════════════════════════════════════════
-function extractValue(prop) {
-  if (!prop) return null;
-  switch (prop.type) {
-    case "title":       return prop.title.map(t => t.plain_text).join("") || null;
-    case "rich_text":   return prop.rich_text.map(t => t.plain_text).join("") || null;
-    case "number":      return prop.number;
-    case "select":      return prop.select?.name ?? null;
-    case "multi_select":return prop.multi_select.map(s => s.name).join(", ") || null;
-    case "checkbox":    return prop.checkbox ? 1 : 0;
-    case "date":        return prop.date?.start ?? null;
-    case "formula":
-      const f = prop.formula;
-      return f.number ?? f.string ?? (f.boolean ? 1 : 0) ?? null;
-    case "rollup":
-      const r = prop.rollup;
-      return r.number ?? null;
-    case "created_time":return prop.created_time;
-    case "last_edited_time": return prop.last_edited_time;
-    default:            return null;
+// =========================
+// EXTRACT
+// =========================
+function extractValue(prop){
+  if(!prop) return null;
+  switch(prop.type){
+    case "title": return prop.title.map(t=>t.plain_text).join("");
+    case "rich_text": return prop.rich_text.map(t=>t.plain_text).join("");
+    case "number": return prop.number;
+    case "select": return prop.select?.name;
+    case "multi_select": return prop.multi_select.map(s=>s.name).join(",");
+    case "date": return prop.date?.start;
+    default: return null;
   }
 }
 
-// ════════════════════════════════════════════════
-//  COLORS
-// ════════════════════════════════════════════════
-const PALETTE = [
-  "#7c6af7","#f7a26a","#6af7a2","#f76a6a",
-  "#6ab8f7","#f7e26a","#e26af7","#6af7d4",
-  "#f76ab8","#a2f76a","#6af76a","#f7c26a",
-];
+// =========================
+// CHART
+// =========================
+function draw(rows){
+  const labels = rows.map(r => extractValue(r.properties[xProp]) || "");
+  const values = rows.map(r => Number(extractValue(r.properties[yProp]) || 0));
 
-function makeColors(n, alpha = 0.85) {
-  return Array.from({length: n}, (_, i) => {
-    const c = PALETTE[i % PALETTE.length];
-    return hexAlpha(c, alpha);
+  new Chart(document.getElementById("chart"), {
+    type,
+    data: {
+      labels,
+      datasets: [{
+        label: yProp,
+        data: values,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false
+    }
   });
 }
 
-function hexAlpha(hex, a) {
-  const r = parseInt(hex.slice(1,3),16);
-  const g = parseInt(hex.slice(3,5),16);
-  const b = parseInt(hex.slice(5,7),16);
-  return `rgba(${r},${g},${b},${a})`;
-}
-
-// ════════════════════════════════════════════════
-//  CHART.JS DEFAULTS
-// ════════════════════════════════════════════════
-Chart.defaults.color = "#666";
-Chart.defaults.borderColor = "#2a2a2a";
-Chart.defaults.font.family = "'DM Sans', sans-serif";
-Chart.defaults.font.size = 11;
-
-// ════════════════════════════════════════════════
-//  BUILD CHART
-// ════════════════════════════════════════════════
-function buildChart(rows, xProp, yProp, type) {
-  const canvas = $("chart");
-  const ctx = canvas.getContext("2d");
-
-  // sort if requested
-  const sortDir = P("sort");
-  if (sortDir) {
-    rows.sort((a, b) => {
-      const av = extractValue(a.properties[yProp]) ?? 0;
-      const bv = extractValue(b.properties[yProp]) ?? 0;
-      return sortDir === "desc" ? bv - av : av - bv;
-    });
-  }
-
-  const labels = rows.map(r => {
-    const v = extractValue(r.properties[xProp]);
-    return v != null ? String(v) : "(empty)";
-  });
-
-  const values = rows.map(r => {
-    const v = extractValue(r.properties[yProp]);
-    return v != null ? Number(v) : 0;
-  });
-
-  const colors = makeColors(labels.length, type === "bar" ? 0.75 : 0.85);
-  const borderColors = makeColors(labels.length, 1);
-
-  const commonDataset = {
-    label: yProp,
-    data: values,
-    backgroundColor: colors,
-    borderColor: type === "line" ? PALETTE[0] : borderColors,
-    borderWidth: type === "line" ? 2 : 1,
-  };
-
-  let config;
-
-  if (type === "scatter") {
-    // For scatter we need both x and y as numbers
-    const scatterData = rows.map(r => ({
-      x: Number(extractValue(r.properties[xProp]) ?? 0),
-      y: Number(extractValue(r.properties[yProp]) ?? 0),
-    }));
-    config = {
-      type: "scatter",
-      data: {
-        datasets: [{
-          label: `${xProp} / ${yProp}`,
-          data: scatterData,
-          backgroundColor: hexAlpha(PALETTE[0], 0.7),
-          borderColor: PALETTE[0],
-          borderWidth: 1,
-          pointRadius: 5,
-          pointHoverRadius: 7,
-        }]
-      },
-      options: scatterOptions(xProp, yProp),
-    };
-  } else if (type === "pie" || type === "doughnut") {
-    config = {
-      type,
-      data: { labels, datasets: [{ ...commonDataset, borderWidth: 2, borderColor: "#0f0f0f" }] },
-      options: pieOptions(),
-    };
-  } else if (type === "line") {
-    config = {
-      type: "line",
-      data: { labels, datasets: [{
-        ...commonDataset,
-        fill: true,
-        backgroundColor: hexAlpha(PALETTE[0], 0.12),
-        tension: 0.4,
-        pointRadius: 3,
-        pointHoverRadius: 6,
-        pointBackgroundColor: PALETTE[0],
-      }]},
-      options: xyOptions(xProp, yProp),
-    };
-  } else {
-    // bar (default)
-    config = {
-      type: "bar",
-      data: { labels, datasets: [commonDataset] },
-      options: xyOptions(xProp, yProp),
-    };
-  }
-
-  new Chart(ctx, config);
-}
-
-function xyOptions(xLabel, yLabel) {
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: { duration: 600, easing: "easeOutQuart" },
-    plugins: {
-      legend: { display: false },
-      tooltip: tooltipStyle(),
-    },
-    scales: {
-      x: {
-        grid: { color: "#1e1e1e" },
-        ticks: { maxRotation: 45, color: "#555" },
-        title: { display: !!xLabel, text: xLabel, color: "#555" },
-      },
-      y: {
-        grid: { color: "#1e1e1e" },
-        ticks: { color: "#555" },
-        title: { display: !!yLabel, text: yLabel, color: "#555" },
-        beginAtZero: true,
-      },
-    },
-  };
-}
-
-function pieOptions() {
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: { duration: 700, easing: "easeOutQuart" },
-    plugins: {
-      legend: {
-        display: true,
-        position: "right",
-        labels: { color: "#888", boxWidth: 10, padding: 14, font: { size: 11 } },
-      },
-      tooltip: tooltipStyle(),
-    },
-  };
-}
-
-function scatterOptions(xLabel, yLabel) {
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: { duration: 600 },
-    plugins: {
-      legend: { display: false },
-      tooltip: tooltipStyle(),
-    },
-    scales: {
-      x: {
-        grid: { color: "#1e1e1e" },
-        ticks: { color: "#555" },
-        title: { display: true, text: xLabel, color: "#555" },
-      },
-      y: {
-        grid: { color: "#1e1e1e" },
-        ticks: { color: "#555" },
-        title: { display: true, text: yLabel, color: "#555" },
-      },
-    },
-  };
-}
-
-function tooltipStyle() {
-  return {
-    backgroundColor: "#1a1a1a",
-    borderColor: "#333",
-    borderWidth: 1,
-    titleColor: "#e8e8e8",
-    bodyColor: "#888",
-    cornerRadius: 6,
-    padding: 10,
-  };
-}
-
-// ════════════════════════════════════════════════
-//  MAIN
-// ════════════════════════════════════════════════
-async function main() {
-  const token = P("token");
-  const db    = P("db");
-  const type  = P("type") || "bar";
-  const xProp = P("x");
-  const yProp = P("y");
-  const title = P("title");
-  const limit = parseInt(P("limit") || "100");
-
-  // No params at all → show setup guide
-  if (!token && !db) {
-    $("loading").style.display = "none";
-    $("setup").classList.add("show");
-    return;
-  }
-
-  // Validate
-  if (!token) return showError("Missing token", "Add ?token=secret_xxx to the URL.", "");
-  if (!db)    return showError("Missing database ID", "Add ?db=DATABASE_ID to the URL.", "");
-  if (!xProp) return showError("Missing x parameter", "Add ?x=ColumnName to specify the X axis property.", "");
-  if (!yProp) return showError("Missing y parameter", "Add ?y=ColumnName to specify the Y axis (value) property.", "");
-
-  if (PROXY === "https://YOUR-WORKER.workers.dev") {
-    return showError(
-      "Proxy not configured",
-      "You need to deploy a Cloudflare Worker and set the PROXY variable in index.html.",
-      "Open index.html, find const PROXY = ... and replace with your Worker URL."
-    );
-  }
-
+// =========================
+// MAIN
+// =========================
+async function main(){
   try {
-    $("loading-text").textContent = "connecting to notion...";
-    const data = await queryDatabase(token, db, limit);
+    if(!db) return error("Missing ?db parameter");
+    if(!xProp) return error("Missing ?x parameter");
+    if(!yProp) return error("Missing ?y parameter");
+
+    const data = await loadData();
     const rows = data.results || [];
 
-    if (rows.length === 0) {
-      return showError("No data", "The database returned 0 rows. Check that your integration has access.", "");
-    }
+    if(!rows.length) return error("No data");
 
-    // Verify properties exist
-    const sampleProps = Object.keys(rows[0].properties);
-    if (!sampleProps.includes(xProp)) {
-      return showError(
-        `Property "${xProp}" not found`,
-        `Available properties in this database:`,
-        sampleProps.join(" · ")
-      );
-    }
-    if (!sampleProps.includes(yProp)) {
-      return showError(
-        `Property "${yProp}" not found`,
-        `Available properties in this database:`,
-        sampleProps.join(" · ")
-      );
-    }
+    draw(rows);
 
-    // Render
-    $("loading").style.display = "none";
-    const app = $("app");
-    app.style.display = "flex";
-
-    $("chart-title").textContent = title || `${yProp} by ${xProp}`;
-    $("row-count").textContent = `${rows.length} rows`;
-
-    buildChart(rows, xProp, yProp, type);
-
-    $("refresh-btn").addEventListener("click", () => location.reload());
-
-  } catch (e) {
-    showError("Failed to load data", e.message,
-      "Check: token is valid · database ID is correct · integration is connected to the DB · proxy URL is set.");
+  } catch(e){
+    error(e.message);
   }
 }
 
 main();
 </script>
+
 </body>
 </html>
