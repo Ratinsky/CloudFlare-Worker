@@ -737,15 +737,42 @@ function mergeRecords(existing, incoming) {
   return [...existing, ...incoming.filter(r => !ids.has(r._id))];
 }
 
-// ── Запрос к воркеру ──────────────────────────────────────────────
+// ── Запрос к воркеру (streaming NDJSON) ──────────────────────────
 async function fetchFromNotion(since = null) {
-  let url = `${WORKER_URL}?db=${encodeURIComponent(cfg.db)}`;
-  if (since) url += `&since=${encodeURIComponent(since)}`;
-  const res = await fetch(url);
+  const p = new URLSearchParams({ db: cfg.db });
+  if (since) p.set("since", since);
+  if (cfg.label) p.set("labelField", cfg.label);
+  if (cfg.value) p.set("valueField", cfg.value);
+  const res = await fetch(`${WORKER_URL}?${p}`);
   if (!res.ok) throw new Error("Ошибка воркера: " + res.status);
-  const data = await res.json();
-  if (data?.error) throw new Error(data.error);
-  return data;
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "", records = null;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      let msg; try { msg = JSON.parse(line); } catch { continue; }
+      switch (msg.type) {
+        case "progress":
+          setStatus(`Загружаю записи... ${msg.count}${msg.hasMore ? " (продолжаю...)" : ""}`, "loading");
+          break;
+        case "resolving":
+          setStatus(msg.status === "связанная база"
+            ? `Загружаю связанные данные...${msg.resolved ? " " + msg.resolved + " записей" : ""}`
+            : `Обрабатываю связи (${msg.total} уникальных)...`, "loading");
+          break;
+        case "data": records = msg.records; break;
+        case "error": throw new Error(msg.message);
+      }
+    }
+  }
+  if (!records) throw new Error("Нет данных от воркера");
+  return records;
 }
 
 // ── Рендер графика из массива данных ─────────────────────────────
