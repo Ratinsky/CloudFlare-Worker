@@ -243,19 +243,19 @@
             </button>
           </div>
         </div>
-        <div class="s-row">
-          <label class="s-label">Поля</label>
-          <div class="db-input-row">
-            <select id="s-label" disabled><option value="">— сначала выбери базу —</option></select>
-            <button class="icon-btn" id="load-fields-btn" disabled>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              Загрузить
-            </button>
+        <div class="s-row-2">
+          <div class="s-row">
+            <label class="s-label">Ось X — подписи</label>
+            <div class="db-input-row">
+              <select id="s-label" disabled><option value="">— выбери поле —</option></select>
+              <button class="icon-btn" id="load-fields-btn" disabled title="Загрузить поля из базы">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              </button>
+            </div>
           </div>
-          <select id="s-value" disabled style="margin-top:6px"><option value="">— сначала выбери базу —</option></select>
-          <div style="display:flex;gap:16px;margin-top:4px">
-            <span style="font-size:11px;color:#aaa">↑ Ось X (подписи)</span>
-            <span style="font-size:11px;color:#aaa">↑ Ось Y (значения)</span>
+          <div class="s-row">
+            <label class="s-label">Ось Y — значения</label>
+            <select id="s-value" disabled><option value="">— выбери поле —</option></select>
           </div>
         </div>
       </div>
