@@ -1,50 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notion Chart</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #fff;
+      padding: 16px;
+    }
+    #status {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 12px;
+      min-height: 20px;
+    }
+    #error {
+      font-size: 13px;
+      color: #e53e3e;
+      background: #fff5f5;
+      border: 1px solid #fed7d7;
+      border-radius: 6px;
+      padding: 10px 14px;
+      display: none;
+    }
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+  </style>
 </head>
 <body>
 
-<h3>Notion Analytics</h3>
-
-<canvas id="barChart"></canvas>
-<canvas id="lineChart"></canvas>
+<div id="status">Загрузка...</div>
+<div id="error"></div>
+<div class="chart-wrap">
+  <canvas id="chart"></canvas>
+</div>
 
 <script>
 const WORKER_URL = "https://lively-king-24e3.aratinskii.workers.dev/";
 
+// Читаем параметры из URL
+// Пример: ?db=abc123&label=Name&value=Revenue&type=bar&title=Продажи&color=6366f1
+const params = new URLSearchParams(window.location.search);
+const DB_ID      = params.get("db");
+const LABEL_FIELD = params.get("label");   // поле для подписей (ось X)
+const VALUE_FIELD = params.get("value");   // поле для значений (ось Y)
+const CHART_TYPE  = params.get("type") || "bar";
+const CHART_TITLE = params.get("title") || "";
+const COLOR       = params.get("color") || "99,102,241"; // RGB без #
+
+function showError(msg) {
+  const el = document.getElementById("error");
+  el.textContent = msg;
+  el.style.display = "block";
+  document.getElementById("status").textContent = "";
+}
+
 async function loadData() {
-  const res = await fetch(WORKER_URL);
-  const data = await res.json();
+  const statusEl = document.getElementById("status");
 
-  console.log("DATA:", data);
+  if (!DB_ID) {
+    showError("Укажи параметр ?db=YOUR_DATABASE_ID в URL.");
+    return;
+  }
+  if (!LABEL_FIELD || !VALUE_FIELD) {
+    showError("Укажи параметры ?label=ИмяПоля&value=ИмяПоля в URL.");
+    return;
+  }
 
-  const labels = data.map(i => i.name);
-  const values = data.map(i => i.value);
+  try {
+    const res = await fetch(`${WORKER_URL}?db=${encodeURIComponent(DB_ID)}`);
 
-  // ===== BAR CHART =====
-  new Chart(document.getElementById("barChart"), {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Values",
-        data: values
-      }]
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      showError("Ошибка воркера: " + (body.error || res.status));
+      return;
     }
-  });
 
-  // ===== LINE CHART =====
-  new Chart(document.getElementById("lineChart"), {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "Trend",
-        data: values
-      }]
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      showError("База данных пуста или не содержит записей.");
+      return;
     }
-  });
+
+    // Проверяем, есть ли нужные поля хотя бы в первой строке
+    const firstRow = data[0];
+    if (!(LABEL_FIELD in firstRow)) {
+      showError(`Поле "${LABEL_FIELD}" не найдено. Доступные поля: ${Object.keys(firstRow).join(", ")}`);
+      return;
+    }
+    if (!(VALUE_FIELD in firstRow)) {
+      showError(`Поле "${VALUE_FIELD}" не найдено. Доступные поля: ${Object.keys(firstRow).join(", ")}`);
+      return;
+    }
+
+    statusEl.textContent = "";
+
+    const labels = data.map(row => row[LABEL_FIELD] ?? "—");
+    const values = data.map(row => Number(row[VALUE_FIELD]) || 0);
+
+    const isPie = CHART_TYPE === "pie" || CHART_TYPE === "doughnut";
+
+    const dataset = {
+      label: VALUE_FIELD,
+      data: values,
+    };
+
+    if (isPie) {
+      // Для pie/doughnut — разные цвета на каждый сегмент
+      const palette = [
+        "99,102,241","16,185,129","245,158,11","239,68,68",
+        "59,130,246","168,85,247","236,72,153","20,184,166",
+      ];
+      dataset.backgroundColor = labels.map((_, i) =>
+        `rgba(${palette[i % palette.length]}, 0.8)`
+      );
+      dataset.borderColor = labels.map((_, i) =>
+        `rgba(${palette[i % palette.length]}, 1)`
+      );
+    } else {
+      dataset.backgroundColor = `rgba(${COLOR}, 0.7)`;
+      dataset.borderColor = `rgba(${COLOR}, 1)`;
+      dataset.borderWidth = 1;
+      if (CHART_TYPE === "line") {
+        dataset.fill = true;
+        dataset.tension = 0.3;
+        dataset.backgroundColor = `rgba(${COLOR}, 0.15)`;
+      }
+    }
+
+    new Chart(document.getElementById("chart"), {
+      type: CHART_TYPE,
+      data: { labels, datasets: [dataset] },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: isPie },
+          title: {
+            display: !!CHART_TITLE,
+            text: CHART_TITLE,
+            font: { size: 15 },
+          },
+        },
+        scales: isPie ? {} : { y: { beginAtZero: true } },
+      },
+    });
+
+  } catch (e) {
+    showError("Ошибка: " + e.message);
+  }
 }
 
 loadData();
