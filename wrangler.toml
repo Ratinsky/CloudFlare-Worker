@@ -1,0 +1,10 @@
+name = "notion-charts-worker"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "NOTION_KV"
+id = "c33009afaeb34af4a39c5e671a883a45"
+
+[triggers]
+crons = ["0 * * * *"]
