@@ -747,7 +747,7 @@ async function fetchFromNotion(since = null) {
   if (!res.ok) throw new Error("Ошибка воркера: " + res.status);
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
-  let buffer = "", records = null;
+  let buffer = "", records = null, syncing = false;
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -767,10 +767,12 @@ async function fetchFromNotion(since = null) {
             : `Обрабатываю связи (${msg.total} уникальных)...`, "loading");
           break;
         case "data": records = msg.records; break;
+        case "syncing": syncing = true; break;
         case "error": throw new Error(msg.message);
       }
     }
   }
+  if (syncing && !records) return { __syncing: true };
   if (!records) throw new Error("Нет данных от воркера");
   return records;
 }
@@ -905,6 +907,16 @@ async function loadData(forceRefresh = false) {
       // Полная загрузка
       setStatus("Подключаюсь к Notion...", "loading");
       const data = await fetchFromNotion(null);
+
+      // KV ещё не заполнен — идёт первая синхронизация
+      if (data?.__syncing) {
+        setStatus("Идёт первая синхронизация данных. Повторная попытка через 30 сек...", "loading");
+        lastUpdatedEl.textContent = "Синхронизируется...";
+        setTimeout(() => loadData(false), 30000);
+        setRefreshing(false);
+        return;
+      }
+
       setStatus(`Получено ${data.length} записей · строю график...`, "loading");
       writeCache(data);
       const ok = renderChart(data);
