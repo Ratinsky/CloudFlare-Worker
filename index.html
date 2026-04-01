@@ -18,23 +18,18 @@
 
     /* ── Toolbar ── */
     #toolbar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      display: flex; align-items: center; gap: 6px;
       padding: 10px 14px;
-      background: #fff;
-      border-bottom: 1px solid #ebebeb;
+      background: #fff; border-bottom: 1px solid #ebebeb;
     }
     #last-updated { flex: 1; font-size: 11px; color: #bbb; }
 
     .tb-btn {
       display: inline-flex; align-items: center; gap: 5px;
       font-size: 12px; font-family: inherit;
-      padding: 5px 11px;
-      border-radius: 7px; border: 1px solid #e0e0e0;
-      background: #fff; color: #555;
-      cursor: pointer; transition: all 0.15s;
-      user-select: none; white-space: nowrap;
+      padding: 5px 11px; border-radius: 7px;
+      border: 1px solid #e0e0e0; background: #fff; color: #555;
+      cursor: pointer; transition: all 0.15s; user-select: none; white-space: nowrap;
     }
     .tb-btn:hover { background: #f4f4f4; border-color: #ccc; }
     .tb-btn.active { background: #f0f0ff; border-color: #c7c7ff; color: #4338ca; }
@@ -43,140 +38,105 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Settings panel ── */
-    #settings-panel {
-      display: none;
-      background: #fff;
-      border-bottom: 1px solid #ebebeb;
-    }
+    #settings-panel { display: none; background: #fff; border-bottom: 1px solid #ebebeb; }
     #settings-panel.open { display: block; }
 
-    .s-inner {
-      padding: 16px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+    .s-inner { padding: 16px 14px; display: flex; flex-direction: column; gap: 8px; }
 
-    /* Section */
-    .s-section {
-      border: 1px solid #ebebeb;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
+    .s-section { border: 1px solid #ebebeb; border-radius: 10px; overflow: hidden; }
     .s-section-head {
       display: flex; align-items: center; gap: 7px;
-      padding: 9px 12px;
-      background: #fafafa;
-      border-bottom: 1px solid #ebebeb;
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.06em;
-      color: #888;
+      padding: 9px 12px; background: #fafafa; border-bottom: 1px solid #ebebeb;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: #888;
     }
     .s-section-head svg { opacity: 0.6; flex-shrink: 0; }
-    .s-section-body {
-      padding: 12px;
-      display: flex; flex-direction: column; gap: 10px;
-    }
+    .s-section-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
 
     .s-row { display: flex; flex-direction: column; gap: 4px; }
     .s-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 420px) { .s-row-2 { grid-template-columns: 1fr; } }
 
-    label.s-label {
-      font-size: 11px; font-weight: 600; color: #777;
-    }
+    label.s-label { font-size: 11px; font-weight: 600; color: #777; }
 
-    /* Inputs */
     input[type="text"], input[type="number"], select {
       font-family: inherit; font-size: 13px;
       border: 1px solid #e0e0e0; border-radius: 7px;
       padding: 6px 9px; background: #fff; color: #1a1a1a;
       outline: none; width: 100%;
       transition: border-color 0.15s, box-shadow 0.15s;
-      appearance: none;
+      -webkit-appearance: none; appearance: none;
     }
-    input[type="text"]:focus, input[type="number"]:focus, select:focus {
+    input:focus, select:focus {
       border-color: #a5b4fc; box-shadow: 0 0 0 3px rgba(165,180,252,0.2);
     }
-    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; cursor: pointer; }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 8px center;
+      padding-right: 28px; cursor: pointer;
+    }
     select option:disabled { color: #ccc; }
 
-    /* DB row with button */
     .db-input-row { display: flex; gap: 6px; }
     .db-input-row select { flex: 1; }
 
-    /* Toggle button group */
-    .btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
-    .btn-group button {
-      font-family: inherit; font-size: 12px;
-      padding: 5px 12px; border: 1px solid #e0e0e0;
-      border-radius: 7px; background: #fff;
-      cursor: pointer; color: #555;
-      transition: all 0.15s; font-weight: 500;
-    }
-    .btn-group button:hover { background: #f4f4f4; }
-    .btn-group button.active {
-      background: #eef2ff; border-color: #a5b4fc;
-      color: #4338ca; font-weight: 600;
-    }
-
-    /* Chart type buttons with icons */
-    .chart-type-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-    .chart-type-btn {
-      font-family: inherit; font-size: 12px;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      padding: 8px 4px; border: 1px solid #e0e0e0;
-      border-radius: 8px; background: #fff;
-      cursor: pointer; color: #555; font-weight: 500;
-      transition: all 0.15s;
-    }
-    .chart-type-btn:hover { background: #f4f4f4; }
-    .chart-type-btn.active {
-      background: #eef2ff; border-color: #a5b4fc; color: #4338ca;
-      font-weight: 600;
-    }
-    .chart-type-btn svg { opacity: 0.7; }
-    .chart-type-btn.active svg { opacity: 1; }
-
-    /* Color row */
-    .color-row { display: flex; align-items: center; gap: 8px; }
-    input[type="color"] {
-      width: 36px; height: 32px; padding: 2px 3px;
-      border: 1px solid #e0e0e0; border-radius: 7px;
-      cursor: pointer; background: #fff; flex-shrink: 0;
-    }
-    .color-hex { font-size: 12px; color: #777; font-family: monospace; }
-
-    /* Load btn */
     .icon-btn {
       flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px;
-      font-family: inherit; font-size: 12px;
-      padding: 6px 10px; border: 1px solid #e0e0e0;
-      border-radius: 7px; background: #fafafa;
-      cursor: pointer; color: #555; white-space: nowrap;
+      font-family: inherit; font-size: 12px; padding: 6px 10px;
+      border: 1px solid #e0e0e0; border-radius: 7px;
+      background: #fafafa; cursor: pointer; color: #555; white-space: nowrap;
       transition: all 0.15s;
     }
     .icon-btn:hover { background: #f0f0f0; border-color: #ccc; }
-    .icon-btn:disabled { opacity: 0.45; cursor: default; }
+    .icon-btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
+
+    /* Chart type grid */
+    .chart-type-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .chart-type-btn {
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 8px 4px; border: 1px solid #e0e0e0; border-radius: 8px;
+      background: #fff; cursor: pointer; color: #555; transition: all 0.15s;
+    }
+    .chart-type-btn:hover { background: #f4f4f4; }
+    .chart-type-btn.active { background: #eef2ff; border-color: #a5b4fc; color: #4338ca; font-weight: 600; }
+    .chart-type-btn svg { opacity: 0.65; }
+    .chart-type-btn.active svg { opacity: 1; }
+
+    /* Agg toggle */
+    .btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
+    .btn-group button {
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      padding: 5px 12px; border: 1px solid #e0e0e0; border-radius: 7px;
+      background: #fff; cursor: pointer; color: #555; transition: all 0.15s;
+    }
+    .btn-group button:hover { background: #f4f4f4; }
+    .btn-group button.active { background: #eef2ff; border-color: #a5b4fc; color: #4338ca; font-weight: 600; }
+
+    /* Color */
+    .color-row { display: flex; align-items: center; gap: 8px; }
+    input[type="color"] {
+      width: 36px; height: 32px; padding: 2px 3px; flex-shrink: 0;
+      border: 1px solid #e0e0e0; border-radius: 7px; cursor: pointer; background: #fff;
+    }
+    .color-hex { font-size: 12px; color: #777; font-family: monospace; }
 
     /* Actions */
-    .s-actions {
-      display: flex; align-items: center; gap: 8px;
-      flex-wrap: wrap; padding-top: 4px;
-    }
+    .s-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 2px; }
     .btn-primary {
       font-family: inherit; font-size: 13px; font-weight: 600;
       padding: 7px 18px; background: #4f46e5; color: #fff;
       border: none; border-radius: 8px; cursor: pointer;
-      transition: background 0.15s; display: inline-flex; align-items: center; gap: 6px;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background 0.15s;
     }
     .btn-primary:hover { background: #4338ca; }
     .btn-secondary {
       font-family: inherit; font-size: 13px;
       padding: 7px 14px; background: #fff; color: #555;
-      border: 1px solid #e0e0e0; border-radius: 8px;
-      cursor: pointer; transition: all 0.15s;
+      border: 1px solid #e0e0e0; border-radius: 8px; cursor: pointer;
       display: inline-flex; align-items: center; gap: 6px;
+      transition: all 0.15s;
     }
     .btn-secondary:hover { background: #f4f4f4; border-color: #ccc; }
     .copy-confirm { font-size: 11px; color: #10b981; font-weight: 600; }
@@ -190,14 +150,13 @@
     }
 
     /* ── Chart area ── */
-    #chart-area { padding: 14px; background: #f8f8f8; }
+    #chart-area { padding: 14px; }
     #empty-hint {
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; gap: 8px;
-      padding: 40px 20px; text-align: center;
-      color: #bbb;
+      padding: 48px 20px; text-align: center; color: #ccc;
     }
-    #empty-hint svg { opacity: 0.3; }
+    #empty-hint svg { opacity: 0.4; }
     #empty-hint p { font-size: 13px; }
     .chart-card {
       background: #fff; border: 1px solid #ebebeb;
@@ -211,12 +170,18 @@
 <!-- Toolbar -->
 <div id="toolbar">
   <span id="last-updated"></span>
-  <button class="tb-btn" id="settings-btn">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  <button class="tb-btn" id="settings-btn" style="display:none">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
     Настройки
   </button>
   <button class="tb-btn" id="refresh-btn">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"/>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+    </svg>
     Обновить
   </button>
 </div>
@@ -225,10 +190,12 @@
 <div id="settings-panel">
   <div class="s-inner">
 
-    <!-- 1. Источник данных -->
+    <!-- Источник данных -->
     <div class="s-section">
       <div class="s-section-head">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+        </svg>
         Источник данных
       </div>
       <div class="s-section-body">
@@ -238,8 +205,10 @@
             <select id="s-db-select">
               <option value="">Загрузка баз данных...</option>
             </select>
-            <button class="icon-btn" id="reload-dbs-btn" title="Обновить список">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            <button class="icon-btn" id="reload-dbs-btn" title="Обновить список баз">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
             </button>
           </div>
         </div>
@@ -247,24 +216,28 @@
           <div class="s-row">
             <label class="s-label">Ось X — подписи</label>
             <div class="db-input-row">
-              <select id="s-label" disabled><option value="">— выбери поле X —</option></select>
+              <select id="s-label" disabled><option value="">— выбери поле —</option></select>
               <button class="icon-btn" id="load-fields-btn" disabled title="Загрузить поля из базы">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                </svg>
               </button>
             </div>
           </div>
           <div class="s-row">
             <label class="s-label">Ось Y — значения</label>
-            <select id="s-value" disabled><option value="">— выбери поле Y —</option></select>
+            <select id="s-value" disabled><option value="">— выбери поле —</option></select>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 2. Тип и агрегация -->
+    <!-- Тип и агрегация -->
     <div class="s-section">
       <div class="s-section-head">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
         Тип графика и агрегация
       </div>
       <div class="s-section-body">
@@ -290,7 +263,7 @@
           </div>
         </div>
         <div class="s-row">
-          <label class="s-label">Агрегация (при совпадающих подписях)</label>
+          <label class="s-label">Агрегация при совпадающих подписях</label>
           <div class="btn-group" id="s-agg">
             <button data-val="sum"   class="active">Сумма</button>
             <button data-val="count">Кол-во</button>
@@ -300,10 +273,13 @@
       </div>
     </div>
 
-    <!-- 3. Внешний вид -->
+    <!-- Внешний вид -->
     <div class="s-section">
       <div class="s-section-head">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/>
+          <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+        </svg>
         Внешний вид
       </div>
       <div class="s-section-body">
@@ -313,12 +289,12 @@
             <input id="s-title" type="text" placeholder="Мой график" />
           </div>
           <div class="s-row">
-            <label class="s-label">Авто-обновление (мин)</label>
-            <input id="s-refresh" type="number" min="0" max="120" value="0" placeholder="0 = выкл" />
+            <label class="s-label">Авто-обновление (мин, 0 = выкл)</label>
+            <input id="s-refresh" type="number" min="0" max="120" value="0" />
           </div>
         </div>
         <div class="s-row">
-          <label class="s-label">Цвет (для bar/line)</label>
+          <label class="s-label">Цвет (для bar / line)</label>
           <div class="color-row">
             <input id="s-color" type="color" value="#6366f1" />
             <span class="color-hex" id="color-hex">#6366f1</span>
@@ -348,7 +324,9 @@
 <!-- Chart area -->
 <div id="chart-area">
   <div id="empty-hint">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
     <p>Настрой источник данных и нажми «Построить»</p>
   </div>
   <div class="chart-card" id="chart-card" style="display:none">
@@ -372,6 +350,7 @@ const cfg = {
   color:   params.get("color")   || "99,102,241",
   refresh: Math.max(0, Number(params.get("refresh") || 0)),
 };
+const ADMIN_PASSWORD = params.get("admin") || "";
 
 const settingsPanel = document.getElementById("settings-panel");
 const settingsBtn   = document.getElementById("settings-btn");
@@ -412,14 +391,26 @@ function getActiveBtnGroup(id) {
   return document.querySelector(`#${id} .active`)?.dataset.val || null;
 }
 
-// ── Синхронизация дропдаунов — блокируем уже выбранное ───────────
+// ── Синхронизация полей X/Y ──────────────────────────────────────
 function syncFieldSelects() {
   const lv = sLabel.value, vv = sValue.value;
-  [...sLabel.options].forEach(o => { o.disabled = o.value && o.value === vv; });
-  [...sValue.options].forEach(o => { o.disabled = o.value && o.value === lv; });
+  [...sLabel.options].forEach(o => { o.disabled = !!o.value && o.value === vv; });
+  [...sValue.options].forEach(o => { o.disabled = !!o.value && o.value === lv; });
 }
 sLabel.addEventListener("change", syncFieldSelects);
 sValue.addEventListener("change", syncFieldSelects);
+
+// ── Проверка пароля ──────────────────────────────────────────────
+async function checkAdmin() {
+  if (!ADMIN_PASSWORD) return false;
+  try {
+    const res = await fetch(`${WORKER_URL}?checkAdmin=${encodeURIComponent(ADMIN_PASSWORD)}`);
+    const data = await res.json();
+    return data.valid === true;
+  } catch {
+    return false;
+  }
+}
 
 // ── Загрузка списка баз данных ────────────────────────────────────
 async function loadDatabases() {
@@ -437,8 +428,6 @@ async function loadDatabases() {
       sDbSelect.appendChild(opt);
     });
     if (cfg.db) sDbSelect.value = cfg.db;
-
-    // Если в URL есть db — сразу активируем кнопку загрузки полей
     if (sDbSelect.value) {
       loadFieldsBtn.disabled = false;
       loadFields(sDbSelect.value);
@@ -453,8 +442,8 @@ async function loadDatabases() {
 sDbSelect.addEventListener("change", () => {
   const hasDb = !!sDbSelect.value;
   loadFieldsBtn.disabled = !hasDb;
-  sLabel.disabled = true; sLabel.innerHTML = '<option value="">— загрузи поля —</option>';
-  sValue.disabled = true; sValue.innerHTML = '<option value="">— загрузи поля —</option>';
+  sLabel.disabled = true; sLabel.innerHTML = '<option value="">— выбери поле —</option>';
+  sValue.disabled = true; sValue.innerHTML = '<option value="">— выбери поле —</option>';
   if (hasDb) loadFields(sDbSelect.value);
 });
 
@@ -464,7 +453,6 @@ reloadDbsBtn.addEventListener("click", loadDatabases);
 async function loadFields(dbId) {
   if (!dbId) return;
   loadFieldsBtn.disabled = true;
-  loadFieldsBtn.querySelector("svg + *") && (loadFieldsBtn.lastChild.textContent = " Загрузка...");
   hideError();
   try {
     const res = await fetch(`${WORKER_URL}?db=${encodeURIComponent(dbId)}&fields=1`);
@@ -494,7 +482,7 @@ async function loadFields(dbId) {
 
 loadFieldsBtn.addEventListener("click", () => loadFields(sDbSelect.value));
 
-// ── Загрузка данных и рендер графика ─────────────────────────────
+// ── Загрузка данных и рендер ─────────────────────────────────────
 async function loadData() {
   if (!cfg.db || !cfg.label || !cfg.value) return;
   hideError();
@@ -510,6 +498,7 @@ async function loadData() {
     if (!(cfg.label in firstRow)) { showError(`Поле "${cfg.label}" не найдено. Доступные: ${Object.keys(firstRow).join(", ")}`); return; }
     if (!(cfg.value in firstRow)) { showError(`Поле "${cfg.value}" не найдено. Доступные: ${Object.keys(firstRow).join(", ")}`); return; }
 
+    // Группировка + агрегация
     const groups = {};
     for (const row of data) {
       const lbl = String(row[cfg.label] ?? "—");
@@ -527,6 +516,7 @@ async function loadData() {
 
     const isPie = cfg.type === "pie" || cfg.type === "doughnut";
     const palette = ["99,102,241","16,185,129","245,158,11","239,68,68","59,130,246","168,85,247","236,72,153","20,184,166"];
+
     const dataset = { label: cfg.value, data: values };
     if (isPie) {
       dataset.backgroundColor = labels.map((_,i) => `rgba(${palette[i%palette.length]},0.8)`);
@@ -575,13 +565,13 @@ function scheduleRefresh() {
 
 // ── Применить настройки ───────────────────────────────────────────
 async function applySettings() {
-  const newDb    = sDbSelect.value;
-  const newLabel = sLabel.value;
-  const newValue = sValue.value;
-  const newType  = getActiveBtnGroup("s-type")  || "bar";
-  const newAgg   = getActiveBtnGroup("s-agg")   || "sum";
-  const newTitle = sTitle.value.trim();
-  const newColor = hexToRgb(sColor.value);
+  const newDb      = sDbSelect.value;
+  const newLabel   = sLabel.value;
+  const newValue   = sValue.value;
+  const newType    = getActiveBtnGroup("s-type")  || "bar";
+  const newAgg     = getActiveBtnGroup("s-agg")   || "sum";
+  const newTitle   = sTitle.value.trim();
+  const newColor   = hexToRgb(sColor.value);
   const newRefresh = Math.max(0, Number(sRefresh.value) || 0);
 
   if (!newDb)    { showError("Выбери базу данных."); return; }
@@ -595,8 +585,9 @@ async function applySettings() {
   if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
 
   const p = new URLSearchParams({ db: newDb, label: newLabel, value: newValue, type: newType, agg: newAgg, color: newColor });
-  if (newTitle)   p.set("title", newTitle);
+  if (newTitle)   p.set("title",   newTitle);
   if (newRefresh) p.set("refresh", newRefresh);
+  if (ADMIN_PASSWORD) p.set("admin", ADMIN_PASSWORD);
   history.replaceState(null, "", "?" + p.toString());
 
   closeSettings();
@@ -612,12 +603,12 @@ function copyLink() {
   });
 }
 
-// ── Панель настроек ───────────────────────────────────────────────
-function openSettings()  { settingsPanel.classList.add("open"); settingsBtn.classList.add("active"); }
-function closeSettings() { settingsPanel.classList.remove("open"); settingsBtn.classList.remove("active"); }
+// ── Settings panel ────────────────────────────────────────────────
+function openSettings()   { settingsPanel.classList.add("open");    settingsBtn.classList.add("active"); }
+function closeSettings()  { settingsPanel.classList.remove("open"); settingsBtn.classList.remove("active"); }
 function toggleSettings() { settingsPanel.classList.contains("open") ? closeSettings() : openSettings(); }
 
-// ── Init settings from URL ────────────────────────────────────────
+// ── Init ─────────────────────────────────────────────────────────
 function initSettings() {
   sTitle.value   = cfg.title;
   sRefresh.value = cfg.refresh;
@@ -648,15 +639,23 @@ sColor.addEventListener("input", () => {
 
 // ── Start ─────────────────────────────────────────────────────────
 initSettings();
-loadDatabases();
 
-if (cfg.db && cfg.label && cfg.value) {
-  closeSettings();
-  loadData().then(scheduleRefresh);
-} else {
-  openSettings();
-  lastUpdatedEl.textContent = "Настрой график и нажми «Построить»";
-}
+(async () => {
+  const isAdmin = await checkAdmin();
+
+  if (isAdmin) {
+    settingsBtn.style.display = "";
+    loadDatabases();
+  }
+
+  if (cfg.db && cfg.label && cfg.value) {
+    if (isAdmin) closeSettings();
+    loadData().then(scheduleRefresh);
+  } else if (isAdmin) {
+    openSettings();
+    lastUpdatedEl.textContent = "Настрой график и нажми «Построить»";
+  }
+})();
 </script>
 
 </body>
