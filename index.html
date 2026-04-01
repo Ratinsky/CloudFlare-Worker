@@ -7,29 +7,31 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #fff;
-      padding: 16px;
+      color: #1a1a1a;
+      padding: 12px 16px 16px;
+      font-size: 13px;
     }
+
+    /* ── Toolbar ── */
     #toolbar {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-      min-height: 24px;
+      gap: 8px;
+      margin-bottom: 10px;
     }
-    #last-updated {
-      font-size: 12px;
-      color: #aaa;
-      flex: 1;
-    }
-    #refresh-btn {
-      display: flex;
+    #last-updated { flex: 1; font-size: 11px; color: #aaa; }
+
+    .tb-btn {
+      display: inline-flex;
       align-items: center;
       gap: 5px;
       font-size: 12px;
-      color: #555;
+      font-family: inherit;
+      color: #444;
       background: #f4f4f4;
       border: 1px solid #ddd;
       border-radius: 6px;
@@ -37,44 +39,243 @@
       cursor: pointer;
       transition: background 0.15s;
       user-select: none;
+      white-space: nowrap;
     }
-    #refresh-btn:hover { background: #e8e8e8; }
-    #refresh-btn:disabled { opacity: 0.5; cursor: default; }
-    #refresh-btn svg {
-      transition: transform 0.6s ease;
-    }
-    #refresh-btn.spinning svg {
-      animation: spin 0.7s linear infinite;
-    }
+    .tb-btn:hover { background: #e8e8e8; }
+    .tb-btn.active { background: #ede9fe; border-color: #a78bfa; color: #5b21b6; }
+    #refresh-btn svg { transition: transform 0.6s ease; }
+    #refresh-btn.spinning svg { animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Settings panel ── */
+    #settings-panel {
+      background: #fafafa;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: none;
+    }
+    #settings-panel.open { display: block; }
+
+    .s-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 16px;
+    }
+    @media (max-width: 480px) { .s-grid { grid-template-columns: 1fr; } }
+
+    .s-row { display: flex; flex-direction: column; gap: 4px; }
+    .s-row.full { grid-column: 1 / -1; }
+    .s-row label { font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .s-row input[type="text"],
+    .s-row input[type="number"],
+    .s-row select {
+      font-family: inherit;
+      font-size: 13px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 5px 8px;
+      background: #fff;
+      color: #1a1a1a;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    .s-row input:focus, .s-row select:focus { border-color: #818cf8; }
+
+    .db-row { display: flex; gap: 6px; }
+    .db-row input { flex: 1; }
+
+    .load-btn {
+      font-family: inherit;
+      font-size: 12px;
+      white-space: nowrap;
+      padding: 5px 10px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #444;
+      transition: background 0.15s;
+    }
+    .load-btn:hover { background: #f0f0f0; }
+    .load-btn:disabled { opacity: 0.5; cursor: default; }
+
+    /* Toggle button group */
+    .btn-group {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .btn-group button {
+      font-family: inherit;
+      font-size: 12px;
+      padding: 4px 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      color: #444;
+      transition: all 0.15s;
+    }
+    .btn-group button:hover { background: #f4f4f4; }
+    .btn-group button.active {
+      background: #ede9fe;
+      border-color: #a78bfa;
+      color: #5b21b6;
+      font-weight: 600;
+    }
+
+    /* Color + number row */
+    .color-row { display: flex; align-items: center; gap: 8px; }
+    input[type="color"] {
+      width: 36px; height: 30px;
+      border: 1px solid #ddd; border-radius: 6px;
+      padding: 2px; cursor: pointer; background: #fff;
+    }
+    .color-label { font-size: 12px; color: #666; }
+
+    /* Actions */
+    .s-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e5e5;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 16px;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-secondary {
+      font-family: inherit;
+      font-size: 13px;
+      padding: 6px 14px;
+      background: #fff;
+      color: #444;
+      border: 1px solid #ddd;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-secondary:hover { background: #f4f4f4; }
+    .copy-confirm { font-size: 11px; color: #10b981; align-self: center; }
+
+    /* ── Error ── */
     #error {
       font-size: 13px;
       color: #e53e3e;
       background: #fff5f5;
       border: 1px solid #fed7d7;
       border-radius: 6px;
-      padding: 10px 14px;
-      margin-bottom: 12px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
       display: none;
     }
-    .chart-wrap {
-      position: relative;
-      width: 100%;
-    }
+
+    /* ── Chart ── */
+    .chart-wrap { position: relative; width: 100%; }
   </style>
 </head>
 <body>
 
+<!-- Toolbar -->
 <div id="toolbar">
-  <span id="last-updated">Загрузка...</span>
-  <button id="refresh-btn" disabled>
+  <span id="last-updated"></span>
+  <button class="tb-btn" id="settings-btn">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    Настройки
+  </button>
+  <button class="tb-btn" id="refresh-btn">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="23 4 23 10 17 10"></polyline>
-      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+      <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
     </svg>
     Обновить
   </button>
 </div>
+
+<!-- Settings Panel -->
+<div id="settings-panel">
+  <div class="s-grid">
+
+    <div class="s-row full">
+      <label>ID базы данных Notion</label>
+      <div class="db-row">
+        <input id="s-db" type="text" placeholder="6329d3615c0c40edb61041385b37adad" spellcheck="false" />
+        <button class="load-btn" id="load-fields-btn">Загрузить поля</button>
+      </div>
+    </div>
+
+    <div class="s-row">
+      <label>Ось X — подписи</label>
+      <select id="s-label"><option value="">— сначала загрузи поля —</option></select>
+    </div>
+
+    <div class="s-row">
+      <label>Ось Y — значения</label>
+      <select id="s-value"><option value="">— сначала загрузи поля —</option></select>
+    </div>
+
+    <div class="s-row full">
+      <label>Тип графика</label>
+      <div class="btn-group" id="s-type">
+        <button data-val="bar"      class="active">Bar</button>
+        <button data-val="line">Line</button>
+        <button data-val="pie">Pie</button>
+        <button data-val="doughnut">Doughnut</button>
+      </div>
+    </div>
+
+    <div class="s-row full">
+      <label>Агрегация (при одинаковых подписях)</label>
+      <div class="btn-group" id="s-agg">
+        <button data-val="sum"   class="active">Сумма</button>
+        <button data-val="count">Кол-во</button>
+        <button data-val="avg">Среднее</button>
+      </div>
+    </div>
+
+    <div class="s-row full">
+      <label>Заголовок графика</label>
+      <input id="s-title" type="text" placeholder="Например: Продажи по месяцам" />
+    </div>
+
+    <div class="s-row">
+      <label>Цвет</label>
+      <div class="color-row">
+        <input id="s-color" type="color" value="#6366f1" />
+        <span class="color-label" id="color-hex">#6366f1</span>
+      </div>
+    </div>
+
+    <div class="s-row">
+      <label>Авто-обновление (мин, 0 = выкл)</label>
+      <input id="s-refresh" type="number" min="0" max="120" value="0" />
+    </div>
+
+  </div>
+
+  <div class="s-actions">
+    <button class="btn-primary" id="apply-btn">Построить график</button>
+    <button class="btn-secondary" id="copy-btn">Скопировать ссылку</button>
+    <span class="copy-confirm" id="copy-confirm" style="display:none">Скопировано!</span>
+  </div>
+</div>
+
 <div id="error"></div>
 <div class="chart-wrap">
   <canvas id="chart"></canvas>
@@ -83,147 +284,322 @@
 <script>
 const WORKER_URL = "https://lively-king-24e3.aratinskii.workers.dev/";
 
-const params       = new URLSearchParams(window.location.search);
-const DB_ID        = params.get("db");
-const LABEL_FIELD  = params.get("label");
-const VALUE_FIELD  = params.get("value");
-const CHART_TYPE   = params.get("type") || "bar";
-const CHART_TITLE  = params.get("title") || "";
-const COLOR        = params.get("color") || "99,102,241";
-const REFRESH_MIN  = Math.max(0, Number(params.get("refresh") || 0)); // минуты, 0 = выключено
+// ── Читаем URL-параметры ──────────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+const cfg = {
+  db:      params.get("db")      || "",
+  label:   params.get("label")   || "",
+  value:   params.get("value")   || "",
+  type:    params.get("type")    || "bar",
+  agg:     params.get("agg")     || "sum",
+  title:   params.get("title")   || "",
+  color:   params.get("color")   || "99,102,241",
+  refresh: Math.max(0, Number(params.get("refresh") || 0)),
+};
 
-let chartInstance  = null;
-let refreshTimer   = null;
+// ── Элементы ──────────────────────────────────────────────────────
+const settingsPanel  = document.getElementById("settings-panel");
+const settingsBtn    = document.getElementById("settings-btn");
+const refreshBtn     = document.getElementById("refresh-btn");
+const loadFieldsBtn  = document.getElementById("load-fields-btn");
+const applyBtn       = document.getElementById("apply-btn");
+const copyBtn        = document.getElementById("copy-btn");
+const copyConfirm    = document.getElementById("copy-confirm");
+const lastUpdatedEl  = document.getElementById("last-updated");
+const errorEl        = document.getElementById("error");
+const sDb            = document.getElementById("s-db");
+const sLabel         = document.getElementById("s-label");
+const sValue         = document.getElementById("s-value");
+const sTitle         = document.getElementById("s-title");
+const sColor         = document.getElementById("s-color");
+const sRefresh       = document.getElementById("s-refresh");
 
-const lastUpdatedEl = document.getElementById("last-updated");
-const refreshBtn    = document.getElementById("refresh-btn");
-const errorEl       = document.getElementById("error");
+let chartInstance = null;
+let refreshTimer  = null;
+
+// ── Вспомогалки ──────────────────────────────────────────────────
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `${r},${g},${b}`;
+}
+function rgbToHex(rgb) {
+  const parts = rgb.split(",").map(n => parseInt(n.trim()));
+  return "#" + parts.map(v => v.toString(16).padStart(2, "0")).join("");
+}
 
 function showError(msg) {
   errorEl.textContent = msg;
   errorEl.style.display = "block";
-  lastUpdatedEl.textContent = "";
 }
-
 function hideError() {
   errorEl.style.display = "none";
 }
-
 function setRefreshing(active) {
   refreshBtn.disabled = active;
   refreshBtn.classList.toggle("spinning", active);
 }
 
+// ── Инициализация настроек из URL ─────────────────────────────────
+function initSettings() {
+  sDb.value      = cfg.db;
+  sTitle.value   = cfg.title;
+  sRefresh.value = cfg.refresh;
+  sColor.value   = rgbToHex(cfg.color);
+  document.getElementById("color-hex").textContent = sColor.value;
+  setBtnGroup("s-type", cfg.type);
+  setBtnGroup("s-agg", cfg.agg);
+
+  // Если есть параметры — открываем сразу, закрытыми не оставим пустыми
+  if (!cfg.db) {
+    openSettings();
+  }
+}
+
+function setBtnGroup(id, val) {
+  document.querySelectorAll(`#${id} button`).forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.val === val);
+  });
+}
+function getActiveBtnGroup(id) {
+  const active = document.querySelector(`#${id} button.active`);
+  return active ? active.dataset.val : null;
+}
+
+// ── Загрузка полей ────────────────────────────────────────────────
+async function loadFields(dbId, selectLabel, selectValue) {
+  if (!dbId) { showError("Введи ID базы данных."); return false; }
+  loadFieldsBtn.disabled = true;
+  loadFieldsBtn.textContent = "Загружаю...";
+  hideError();
+
+  try {
+    const res = await fetch(`${WORKER_URL}?db=${encodeURIComponent(dbId)}&fields=1`);
+    if (!res.ok) throw new Error("Ошибка " + res.status);
+    const fields = await res.json();
+
+    if (!Array.isArray(fields) || fields.length === 0) {
+      showError("База пуста или недоступна.");
+      return false;
+    }
+
+    // Заполняем оба селекта
+    [sLabel, sValue].forEach(sel => {
+      sel.innerHTML = '<option value="">— выбери поле —</option>';
+      fields.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f.name;
+        opt.textContent = `${f.name} (${f.type})`;
+        sel.appendChild(opt);
+      });
+    });
+
+    // Восстанавливаем выбранные значения если они есть
+    if (cfg.label) sLabel.value = cfg.label;
+    if (cfg.value) sValue.value = cfg.value;
+
+    return true;
+  } catch (e) {
+    showError("Не удалось загрузить поля: " + e.message);
+    return false;
+  } finally {
+    loadFieldsBtn.disabled = false;
+    loadFieldsBtn.textContent = "Загрузить поля";
+  }
+}
+
+// ── Построение графика ────────────────────────────────────────────
 async function loadData() {
+  if (!cfg.db || !cfg.label || !cfg.value) return;
+
   hideError();
   setRefreshing(true);
 
-  if (!DB_ID) {
-    showError("Укажи параметр ?db=YOUR_DATABASE_ID в URL.");
-    setRefreshing(false);
-    return;
-  }
-  if (!LABEL_FIELD || !VALUE_FIELD) {
-    showError("Укажи параметры ?label=ИмяПоля&value=ИмяПоля в URL.");
-    setRefreshing(false);
-    return;
-  }
-
   try {
-    const res = await fetch(`${WORKER_URL}?db=${encodeURIComponent(DB_ID)}`);
-
+    const res = await fetch(`${WORKER_URL}?db=${encodeURIComponent(cfg.db)}`);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       showError("Ошибка воркера: " + (body.error || res.status));
-      setRefreshing(false);
       return;
     }
 
     const data = await res.json();
-
     if (!Array.isArray(data) || data.length === 0) {
-      showError("База данных пуста или не содержит записей.");
-      setRefreshing(false);
+      showError("База данных пуста.");
       return;
     }
 
     const firstRow = data[0];
-    if (!(LABEL_FIELD in firstRow)) {
-      showError(`Поле "${LABEL_FIELD}" не найдено. Доступные: ${Object.keys(firstRow).join(", ")}`);
-      setRefreshing(false);
+    if (!(cfg.label in firstRow)) {
+      showError(`Поле "${cfg.label}" не найдено. Доступные: ${Object.keys(firstRow).join(", ")}`);
       return;
     }
-    if (!(VALUE_FIELD in firstRow)) {
-      showError(`Поле "${VALUE_FIELD}" не найдено. Доступные: ${Object.keys(firstRow).join(", ")}`);
-      setRefreshing(false);
+    if (cfg.agg !== "count" && !(cfg.value in firstRow)) {
+      showError(`Поле "${cfg.value}" не найдено. Доступные: ${Object.keys(firstRow).join(", ")}`);
       return;
     }
 
-    const labels = data.map(row => row[LABEL_FIELD] ?? "—");
-    const values = data.map(row => Number(row[VALUE_FIELD]) || 0);
-    const isPie = CHART_TYPE === "pie" || CHART_TYPE === "doughnut";
+    // Группировка и агрегация
+    const groups = {};
+    for (const row of data) {
+      const label = String(row[cfg.label] ?? "—");
+      const val   = Number(row[cfg.value]) || 0;
+      if (!groups[label]) groups[label] = { sum: 0, count: 0 };
+      groups[label].sum   += val;
+      groups[label].count += 1;
+    }
 
+    const labels = Object.keys(groups);
+    const values = labels.map(l => {
+      if (cfg.agg === "count") return groups[l].count;
+      if (cfg.agg === "avg")   return +(groups[l].sum / groups[l].count).toFixed(2);
+      return groups[l].sum;
+    });
+
+    const isPie = cfg.type === "pie" || cfg.type === "doughnut";
     const palette = [
       "99,102,241","16,185,129","245,158,11","239,68,68",
       "59,130,246","168,85,247","236,72,153","20,184,166",
     ];
 
-    const dataset = { label: VALUE_FIELD, data: values };
+    const dataset = { label: cfg.value, data: values };
     if (isPie) {
       dataset.backgroundColor = labels.map((_, i) => `rgba(${palette[i % palette.length]}, 0.8)`);
       dataset.borderColor     = labels.map((_, i) => `rgba(${palette[i % palette.length]}, 1)`);
     } else {
-      dataset.backgroundColor = CHART_TYPE === "line"
-        ? `rgba(${COLOR}, 0.15)`
-        : `rgba(${COLOR}, 0.7)`;
-      dataset.borderColor  = `rgba(${COLOR}, 1)`;
+      dataset.borderColor  = `rgba(${cfg.color}, 1)`;
       dataset.borderWidth  = 1;
-      if (CHART_TYPE === "line") { dataset.fill = true; dataset.tension = 0.3; }
+      dataset.backgroundColor = cfg.type === "line"
+        ? `rgba(${cfg.color}, 0.15)`
+        : `rgba(${cfg.color}, 0.7)`;
+      if (cfg.type === "line") { dataset.fill = true; dataset.tension = 0.3; }
     }
 
     if (chartInstance) {
-      // Обновляем данные без пересоздания графика
-      chartInstance.data.labels = labels;
+      chartInstance.data.labels           = labels;
       chartInstance.data.datasets[0].data = values;
       chartInstance.update();
     } else {
       chartInstance = new Chart(document.getElementById("chart"), {
-        type: CHART_TYPE,
+        type: cfg.type,
         data: { labels, datasets: [dataset] },
         options: {
           responsive: true,
           plugins: {
             legend: { display: isPie },
-            title: { display: !!CHART_TITLE, text: CHART_TITLE, font: { size: 15 } },
+            title: { display: !!cfg.title, text: cfg.title, font: { size: 15 } },
           },
           scales: isPie ? {} : { y: { beginAtZero: true } },
         },
       });
     }
 
-    const now = new Date();
-    const time = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    const time = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
     lastUpdatedEl.textContent = `Обновлено в ${time}`
-      + (REFRESH_MIN > 0 ? ` · авто каждые ${REFRESH_MIN} мин` : "");
+      + (cfg.refresh > 0 ? ` · авто каждые ${cfg.refresh} мин` : "");
 
   } catch (e) {
     showError("Ошибка: " + e.message);
   }
 
   setRefreshing(false);
-  refreshBtn.disabled = false;
 }
 
 function scheduleRefresh() {
   if (refreshTimer) clearInterval(refreshTimer);
-  if (REFRESH_MIN > 0) {
-    refreshTimer = setInterval(loadData, REFRESH_MIN * 60 * 1000);
+  if (cfg.refresh > 0) {
+    refreshTimer = setInterval(loadData, cfg.refresh * 60 * 1000);
   }
 }
 
-refreshBtn.addEventListener("click", loadData);
+// ── Панель настроек ───────────────────────────────────────────────
+function openSettings() {
+  settingsPanel.classList.add("open");
+  settingsBtn.classList.add("active");
+  if (cfg.db) loadFields(cfg.db);
+}
+function closeSettings() {
+  settingsPanel.classList.remove("open");
+  settingsBtn.classList.remove("active");
+}
+function toggleSettings() {
+  settingsPanel.classList.contains("open") ? closeSettings() : openSettings();
+}
 
-loadData().then(scheduleRefresh);
+// ── Применить настройки ───────────────────────────────────────────
+async function applySettings() {
+  const newDb    = sDb.value.trim();
+  const newLabel = sLabel.value;
+  const newValue = sValue.value;
+  const newType  = getActiveBtnGroup("s-type")  || "bar";
+  const newAgg   = getActiveBtnGroup("s-agg")   || "sum";
+  const newTitle = sTitle.value.trim();
+  const newColor = hexToRgb(sColor.value);
+  const newRefresh = Math.max(0, Number(sRefresh.value) || 0);
+
+  if (!newDb)    { showError("Введи ID базы данных."); return; }
+  if (!newLabel) { showError("Выбери поле для оси X."); return; }
+  if (!newValue) { showError("Выбери поле для оси Y."); return; }
+
+  // Обновляем cfg
+  cfg.db = newDb; cfg.label = newLabel; cfg.value = newValue;
+  cfg.type = newType; cfg.agg = newAgg; cfg.title = newTitle;
+  cfg.color = newColor; cfg.refresh = newRefresh;
+
+  // Пересоздаём граф если тип изменился
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+  // Обновляем URL (без перезагрузки)
+  const p = new URLSearchParams({ db: newDb, label: newLabel, value: newValue,
+    type: newType, agg: newAgg, color: newColor });
+  if (newTitle)   p.set("title", newTitle);
+  if (newRefresh) p.set("refresh", newRefresh);
+  history.replaceState(null, "", "?" + p.toString());
+
+  closeSettings();
+  scheduleRefresh();
+  await loadData();
+}
+
+// ── Скопировать ссылку ────────────────────────────────────────────
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    copyConfirm.style.display = "inline";
+    setTimeout(() => { copyConfirm.style.display = "none"; }, 2000);
+  });
+}
+
+// ── Обработчики ───────────────────────────────────────────────────
+settingsBtn.addEventListener("click", toggleSettings);
+refreshBtn.addEventListener("click", loadData);
+applyBtn.addEventListener("click", applySettings);
+copyBtn.addEventListener("click", copyLink);
+loadFieldsBtn.addEventListener("click", () => loadFields(sDb.value.trim()));
+
+// Btn groups
+document.querySelectorAll(".btn-group").forEach(group => {
+  group.addEventListener("click", e => {
+    const btn = e.target.closest("button[data-val]");
+    if (!btn) return;
+    group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  });
+});
+
+// Color picker
+sColor.addEventListener("input", () => {
+  document.getElementById("color-hex").textContent = sColor.value;
+});
+
+// ── Старт ─────────────────────────────────────────────────────────
+initSettings();
+if (cfg.db && cfg.label && cfg.value) {
+  loadData().then(scheduleRefresh);
+} else {
+  openSettings();
+  lastUpdatedEl.textContent = "Настрой график и нажми «Построить»";
+}
 </script>
 
 </body>
