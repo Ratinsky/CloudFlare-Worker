@@ -12,12 +12,41 @@
       background: #fff;
       padding: 16px;
     }
-    #status {
-      font-size: 14px;
-      color: #888;
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       margin-bottom: 12px;
-      min-height: 20px;
+      min-height: 24px;
     }
+    #last-updated {
+      font-size: 12px;
+      color: #aaa;
+      flex: 1;
+    }
+    #refresh-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: #555;
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    #refresh-btn:hover { background: #e8e8e8; }
+    #refresh-btn:disabled { opacity: 0.5; cursor: default; }
+    #refresh-btn svg {
+      transition: transform 0.6s ease;
+    }
+    #refresh-btn.spinning svg {
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     #error {
       font-size: 13px;
       color: #e53e3e;
@@ -25,6 +54,7 @@
       border: 1px solid #fed7d7;
       border-radius: 6px;
       padding: 10px 14px;
+      margin-bottom: 12px;
       display: none;
     }
     .chart-wrap {
@@ -35,7 +65,16 @@
 </head>
 <body>
 
-<div id="status">Загрузка...</div>
+<div id="toolbar">
+  <span id="last-updated">Загрузка...</span>
+  <button id="refresh-btn" disabled>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    Обновить
+  </button>
+</div>
 <div id="error"></div>
 <div class="chart-wrap">
   <canvas id="chart"></canvas>
@@ -44,32 +83,49 @@
 <script>
 const WORKER_URL = "https://lively-king-24e3.aratinskii.workers.dev/";
 
-// Читаем параметры из URL
-// Пример: ?db=abc123&label=Name&value=Revenue&type=bar&title=Продажи&color=6366f1
-const params = new URLSearchParams(window.location.search);
-const DB_ID      = params.get("db");
-const LABEL_FIELD = params.get("label");   // поле для подписей (ось X)
-const VALUE_FIELD = params.get("value");   // поле для значений (ось Y)
-const CHART_TYPE  = params.get("type") || "bar";
-const CHART_TITLE = params.get("title") || "";
-const COLOR       = params.get("color") || "99,102,241"; // RGB без #
+const params       = new URLSearchParams(window.location.search);
+const DB_ID        = params.get("db");
+const LABEL_FIELD  = params.get("label");
+const VALUE_FIELD  = params.get("value");
+const CHART_TYPE   = params.get("type") || "bar";
+const CHART_TITLE  = params.get("title") || "";
+const COLOR        = params.get("color") || "99,102,241";
+const REFRESH_MIN  = Math.max(0, Number(params.get("refresh") || 0)); // минуты, 0 = выключено
+
+let chartInstance  = null;
+let refreshTimer   = null;
+
+const lastUpdatedEl = document.getElementById("last-updated");
+const refreshBtn    = document.getElementById("refresh-btn");
+const errorEl       = document.getElementById("error");
 
 function showError(msg) {
-  const el = document.getElementById("error");
-  el.textContent = msg;
-  el.style.display = "block";
-  document.getElementById("status").textContent = "";
+  errorEl.textContent = msg;
+  errorEl.style.display = "block";
+  lastUpdatedEl.textContent = "";
+}
+
+function hideError() {
+  errorEl.style.display = "none";
+}
+
+function setRefreshing(active) {
+  refreshBtn.disabled = active;
+  refreshBtn.classList.toggle("spinning", active);
 }
 
 async function loadData() {
-  const statusEl = document.getElementById("status");
+  hideError();
+  setRefreshing(true);
 
   if (!DB_ID) {
     showError("Укажи параметр ?db=YOUR_DATABASE_ID в URL.");
+    setRefreshing(false);
     return;
   }
   if (!LABEL_FIELD || !VALUE_FIELD) {
     showError("Укажи параметры ?label=ИмяПоля&value=ИмяПоля в URL.");
+    setRefreshing(false);
     return;
   }
 
@@ -79,6 +135,7 @@ async function loadData() {
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       showError("Ошибка воркера: " + (body.error || res.status));
+      setRefreshing(false);
       return;
     }
 
@@ -86,78 +143,87 @@ async function loadData() {
 
     if (!Array.isArray(data) || data.length === 0) {
       showError("База данных пуста или не содержит записей.");
+      setRefreshing(false);
       return;
     }
 
-    // Проверяем, есть ли нужные поля хотя бы в первой строке
     const firstRow = data[0];
     if (!(LABEL_FIELD in firstRow)) {
-      showError(`Поле "${LABEL_FIELD}" не найдено. Доступные поля: ${Object.keys(firstRow).join(", ")}`);
+      showError(`Поле "${LABEL_FIELD}" не найдено. Доступные: ${Object.keys(firstRow).join(", ")}`);
+      setRefreshing(false);
       return;
     }
     if (!(VALUE_FIELD in firstRow)) {
-      showError(`Поле "${VALUE_FIELD}" не найдено. Доступные поля: ${Object.keys(firstRow).join(", ")}`);
+      showError(`Поле "${VALUE_FIELD}" не найдено. Доступные: ${Object.keys(firstRow).join(", ")}`);
+      setRefreshing(false);
       return;
     }
 
-    statusEl.textContent = "";
-
     const labels = data.map(row => row[LABEL_FIELD] ?? "—");
     const values = data.map(row => Number(row[VALUE_FIELD]) || 0);
-
     const isPie = CHART_TYPE === "pie" || CHART_TYPE === "doughnut";
 
-    const dataset = {
-      label: VALUE_FIELD,
-      data: values,
-    };
+    const palette = [
+      "99,102,241","16,185,129","245,158,11","239,68,68",
+      "59,130,246","168,85,247","236,72,153","20,184,166",
+    ];
 
+    const dataset = { label: VALUE_FIELD, data: values };
     if (isPie) {
-      // Для pie/doughnut — разные цвета на каждый сегмент
-      const palette = [
-        "99,102,241","16,185,129","245,158,11","239,68,68",
-        "59,130,246","168,85,247","236,72,153","20,184,166",
-      ];
-      dataset.backgroundColor = labels.map((_, i) =>
-        `rgba(${palette[i % palette.length]}, 0.8)`
-      );
-      dataset.borderColor = labels.map((_, i) =>
-        `rgba(${palette[i % palette.length]}, 1)`
-      );
+      dataset.backgroundColor = labels.map((_, i) => `rgba(${palette[i % palette.length]}, 0.8)`);
+      dataset.borderColor     = labels.map((_, i) => `rgba(${palette[i % palette.length]}, 1)`);
     } else {
-      dataset.backgroundColor = `rgba(${COLOR}, 0.7)`;
-      dataset.borderColor = `rgba(${COLOR}, 1)`;
-      dataset.borderWidth = 1;
-      if (CHART_TYPE === "line") {
-        dataset.fill = true;
-        dataset.tension = 0.3;
-        dataset.backgroundColor = `rgba(${COLOR}, 0.15)`;
-      }
+      dataset.backgroundColor = CHART_TYPE === "line"
+        ? `rgba(${COLOR}, 0.15)`
+        : `rgba(${COLOR}, 0.7)`;
+      dataset.borderColor  = `rgba(${COLOR}, 1)`;
+      dataset.borderWidth  = 1;
+      if (CHART_TYPE === "line") { dataset.fill = true; dataset.tension = 0.3; }
     }
 
-    new Chart(document.getElementById("chart"), {
-      type: CHART_TYPE,
-      data: { labels, datasets: [dataset] },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: isPie },
-          title: {
-            display: !!CHART_TITLE,
-            text: CHART_TITLE,
-            font: { size: 15 },
+    if (chartInstance) {
+      // Обновляем данные без пересоздания графика
+      chartInstance.data.labels = labels;
+      chartInstance.data.datasets[0].data = values;
+      chartInstance.update();
+    } else {
+      chartInstance = new Chart(document.getElementById("chart"), {
+        type: CHART_TYPE,
+        data: { labels, datasets: [dataset] },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: isPie },
+            title: { display: !!CHART_TITLE, text: CHART_TITLE, font: { size: 15 } },
           },
+          scales: isPie ? {} : { y: { beginAtZero: true } },
         },
-        scales: isPie ? {} : { y: { beginAtZero: true } },
-      },
-    });
+      });
+    }
+
+    const now = new Date();
+    const time = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    lastUpdatedEl.textContent = `Обновлено в ${time}`
+      + (REFRESH_MIN > 0 ? ` · авто каждые ${REFRESH_MIN} мин` : "");
 
   } catch (e) {
     showError("Ошибка: " + e.message);
   }
+
+  setRefreshing(false);
+  refreshBtn.disabled = false;
 }
 
-loadData();
+function scheduleRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  if (REFRESH_MIN > 0) {
+    refreshTimer = setInterval(loadData, REFRESH_MIN * 60 * 1000);
+  }
+}
+
+refreshBtn.addEventListener("click", loadData);
+
+loadData().then(scheduleRefresh);
 </script>
 
 </body>
