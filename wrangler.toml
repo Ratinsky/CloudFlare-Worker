@@ -7,4 +7,4 @@ binding = "NOTION_KV"
 id = "c33009afaeb34af4a39c5e671a883a45"
 
 [triggers]
-crons = ["0 * * * *"]
+crons = ["* * * * *"]
